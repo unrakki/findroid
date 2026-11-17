@@ -28,10 +28,12 @@ import dev.jdtech.jellyfin.models.toFindroidShow
 import dev.jdtech.jellyfin.models.toFindroidSource
 import dev.jdtech.jellyfin.settings.domain.AppPreferences
 import java.io.File
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import org.jellyfin.sdk.model.DateTime
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.DeviceOptionsDto
@@ -455,6 +457,7 @@ class JellyfinRepositoryImpl(
                     database.setPlayed(jellyfinApi.userId!!, itemId, false)
                 }
             }
+            database.setLastPlayedDate(jellyfinApi.userId!!, itemId, DateTime.now(ZoneOffset.UTC))
             try {
                 jellyfinApi.sessionApi.reportPlaybackStopped(
                     PlaybackStopInfo(itemId = itemId, positionTicks = positionTicks, failed = false)
@@ -473,6 +476,7 @@ class JellyfinRepositoryImpl(
         Timber.d("Posting progress of $itemId, position: $positionTicks")
         withContext(Dispatchers.IO) {
             database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, positionTicks)
+            database.setLastPlayedDate(jellyfinApi.userId!!, itemId, DateTime.now(ZoneOffset.UTC))
             try {
                 jellyfinApi.sessionApi.reportPlaybackProgress(
                     PlaybackProgressInfo(
@@ -517,6 +521,7 @@ class JellyfinRepositoryImpl(
     override suspend fun markAsPlayed(itemId: UUID) {
         withContext(Dispatchers.IO) {
             database.setPlayed(jellyfinApi.userId!!, itemId, true)
+            database.setLastPlayedDate(jellyfinApi.userId!!, itemId, DateTime.now(ZoneOffset.UTC))
             try {
                 jellyfinApi.userDataApi.markPlayedItem(itemId)
             } catch (_: Exception) {

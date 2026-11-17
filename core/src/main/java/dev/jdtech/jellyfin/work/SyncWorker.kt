@@ -13,6 +13,8 @@ import dev.jdtech.jellyfin.models.User
 import dev.jdtech.jellyfin.models.toFindroidEpisode
 import dev.jdtech.jellyfin.models.toFindroidMovie
 import dev.jdtech.jellyfin.settings.domain.AppPreferences
+import java.time.ZoneId
+import java.time.ZoneOffset
 import org.jellyfin.sdk.model.api.UpdateUserItemDataDto
 
 @HiltWorker
@@ -82,6 +84,12 @@ constructor(
                             playbackPositionTicks = userData.playbackPositionTicks,
                             isFavorite = userData.favorite,
                             played = userData.played,
+                            // Stored in UTC, the SDK serializes it in the system time zone
+                            lastPlayedDate =
+                                userData.lastPlayedDate
+                                    ?.atOffset(ZoneOffset.UTC)
+                                    ?.atZoneSameInstant(ZoneId.systemDefault())
+                                    ?.toLocalDateTime(),
                         ),
                 )
 

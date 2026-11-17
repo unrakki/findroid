@@ -23,10 +23,12 @@ import dev.jdtech.jellyfin.models.toFindroidShow
 import dev.jdtech.jellyfin.models.toFindroidSource
 import dev.jdtech.jellyfin.settings.domain.AppPreferences
 import java.io.File
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import org.jellyfin.sdk.model.DateTime
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ItemFields
@@ -251,6 +253,7 @@ class JellyfinRepositoryOfflineImpl(
                     database.setPlayed(jellyfinApi.userId!!, itemId, false)
                 }
             }
+            database.setLastPlayedDate(jellyfinApi.userId!!, itemId, DateTime.now(ZoneOffset.UTC))
             database.setUserDataToBeSynced(jellyfinApi.userId!!, itemId, true)
         }
     }
@@ -262,6 +265,7 @@ class JellyfinRepositoryOfflineImpl(
     ) {
         withContext(Dispatchers.IO) {
             database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, positionTicks)
+            database.setLastPlayedDate(jellyfinApi.userId!!, itemId, DateTime.now(ZoneOffset.UTC))
             database.setUserDataToBeSynced(jellyfinApi.userId!!, itemId, true)
         }
     }
@@ -284,6 +288,7 @@ class JellyfinRepositoryOfflineImpl(
         withContext(Dispatchers.IO) {
             database.setPlayed(jellyfinApi.userId!!, itemId, true)
             database.setPlaybackPositionTicks(itemId, jellyfinApi.userId!!, 0)
+            database.setLastPlayedDate(jellyfinApi.userId!!, itemId, DateTime.now(ZoneOffset.UTC))
             database.setUserDataToBeSynced(jellyfinApi.userId!!, itemId, true)
         }
     }
